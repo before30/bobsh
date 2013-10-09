@@ -1,26 +1,20 @@
 #!/bin/bash
 
-getNowDay()
-{
-	date +%d
-}
+bobmenu_file=~/.bobmenus
+bobsh_home=~/.bobsh
 
-getOriginFileDay()
+now()
 {
-	last_run=$(stat -f %c ~/.bobmenus)
-	date -r $last_run +%d
+	date +%s
 }
 
 bobMenuSelect()
 {
-    bobmenu_file=~/.bobmenus
-
-
-    if (egrep -q '.' ${bobmenu_file}); 
+	if [ -f $bobmenu_file ];
     then
 		old_IFS=$IFS
 		IFS=$'\n'
-		menus=($(cat $bobmenu_file)) # array
+		menus=($(cat ${bobmenu_file})) # array
 		IFS=$old_IFS
 
 		myhour=($(date +'%H'))
@@ -28,24 +22,28 @@ bobMenuSelect()
 		length=${#menus[@]}
 		if [ $length -lt 4 ]
 		then
-			echo "메뉴없음"
+			echo "메뉴없음 $length"
 			return;
 		fi
 		
-		if [ $myhour -gt 19 ]
+		if [ $myhour -ge 19 ]
 		then
 			echo "메뉴없음"
 
-		elif [ $myhour -gt 13 ]
+		elif [ $myhour -ge 13 ]
 		then
 			echo "${menus[3]}"
 
-		elif [ $myhour -gt 8 ] 
+		elif [ $myhour -ge 8 ] 
 		then
-			echo "${menus[1]},${menus[2]}"
-
+			num=$RANDOM
+			if [ $(($num % 2)) -eq 0 ]; then
+				echo "${menus[1]}"
+			else
+				echo "${menus[2]}"
+			fi
 		else
-			echo "${menus[0]}"
+			echo "$myhour ${menus[0]}"
 		fi
 	else	
 		echo "메뉴없음"
@@ -55,17 +53,20 @@ bobMenuSelect()
 
 bobMenus()
 {
-    cliww="$(pwd)/bobcrowler.py"
-    if ! [ -e ~/.bobmenus ]; 
-    then
-        python ${cliww} > ~/.bobmenus
-    fi
 
-    last_run_day=$(getOriginFileDay)
-    if [ $last_run_day -ne $(getNowDay) ];
+	poll_every=3600
+    bobcrowler="${bobsh_home}/bobcrowler.py"
+   
+	if [ ! -f ${bobmenu_file} ]; 
     then
-        res=$(python ${cliww})
-        echo ${res} > ~/.bobmenus
+    	python $bobcrowler > $bobmenu_file 2>/dev/null
+   	else
+		last_run=$(stat -f %c ${bobmenu_file})
+	fi
+
+    if [ $(( $last_run + $poll_every )) -lt $(now) ];
+    then
+    	python $bobcrowler > $bobmenu_file 2>/dev/null
 	fi
 
     bobMenuSelect
