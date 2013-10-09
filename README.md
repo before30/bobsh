@@ -26,8 +26,15 @@ function menu {
 RPS1='${return_code} %D - %* $(menu)' 
 ```
 
+	* 예제 파일 참조 [https://github.com/before30/bobsh/blob/master/example.zsh-theme]
+	
 * theme 설정 적용
 ```
 > source [theme 설정 파일]
 ```
 
+Oh-my-zsh 설치
+====
+
+1. https://github.com/robbyrussell/oh-my-zsh
+2. http://whiteship.me/?p=13816
